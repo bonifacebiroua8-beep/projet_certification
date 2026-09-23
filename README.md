@@ -141,15 +141,3 @@ CI	GitHub Actions
 Licence
 Projet de certification — UbuntuTech 2026.
 '@ | Out-File -Encoding utf8 README.md
-
-text
-
----
-
-### 4️⃣ **Push les 3 fichiers**
-
-```powershell
-git add .
-git commit -m "ci: fix Flutter version + docs: README pro + CHANGELOG 3 versions"
-git push
-🚀 Ensuite :
