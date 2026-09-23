@@ -140,4 +140,3 @@ Tests	flutter_test + mocktail + integration_test
 CI	GitHub Actions
 Licence
 Projet de certification — UbuntuTech 2026.
-'@ | Out-File -Encoding utf8 README.md
