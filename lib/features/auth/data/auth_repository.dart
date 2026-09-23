@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import '../../../core/storage/secure_storage.dart';
 import '../../../core/utils/jwt_utils.dart';
 import 'auth_remote_datasource.dart';
@@ -12,7 +13,9 @@ class AuthRepository {
       final uid = JwtUtils.extractUserId(data['access_token']);
       if (uid != null) await SecureStorage.saveUserId(uid);
       return true;
-    } catch (_) {
+    } catch (e, stack) {
+      debugPrint('❌ LOGIN ERROR: $e');
+      debugPrint('❌ STACK: $stack');
       return false;
     }
   }
@@ -21,7 +24,9 @@ class AuthRepository {
     try {
       await _remote.register(email, password);
       return true;
-    } catch (_) {
+    } catch (e, stack) {
+      debugPrint('❌ REGISTER ERROR: $e');
+      debugPrint('❌ STACK: $stack');
       return false;
     }
   }

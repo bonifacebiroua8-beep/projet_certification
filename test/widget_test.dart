@@ -1,22 +1,45 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ubuntutech_frontend/app.dart';
+import 'package:ubuntutech_frontend/l10n/app_localizations.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const UbuntuTechApp());
+  testWidgets('AppLocalizations FR expose les traductions', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        locale: Locale('fr'),
+        home: Scaffold(body: SizedBox()),
+      ),
+    );
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsNothing);
+    final ctx = tester.element(find.byType(Scaffold));
+    final t = AppLocalizations.of(ctx)!;
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    expect(t.login, 'Connexion');
+    expect(t.sales, 'Ventes');
+    expect(t.stock, 'Stocks');
+    expect(t.debts, 'Dettes');
+    expect(t.profile, 'Profil');
+  });
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsNothing);
+  testWidgets('AppLocalizations EN expose les traductions', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        locale: Locale('en'),
+        home: Scaffold(body: SizedBox()),
+      ),
+    );
+
+    final ctx = tester.element(find.byType(Scaffold));
+    final t = AppLocalizations.of(ctx)!;
+
+    expect(t.login, 'Login');
+    expect(t.sales, 'Sales');
+    expect(t.stock, 'Stock');
+    expect(t.debts, 'Debts');
+    expect(t.profile, 'Profile');
   });
 }

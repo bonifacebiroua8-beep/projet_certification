@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../l10n/app_localizations.dart';
 import '../data/products_repository.dart';
 import '../../../core/error/app_exception.dart';
 
@@ -19,37 +20,79 @@ class _AddProductDialogState extends State<AddProductDialog> {
 
   Future<void> _submit() async {
     if (_nom.text.isEmpty || _qty.text.isEmpty || _price.text.isEmpty) return;
-    setState(() { _loading = true; _error = null; });
+    if (!mounted) return;
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
     try {
-      await _repo.addProduct(_nom.text, double.parse(_qty.text),
-          double.parse(_price.text), double.parse(_seuil.text));
+      await _repo.addProduct(
+        _nom.text,
+        double.parse(_qty.text),
+        double.parse(_price.text),
+        double.parse(_seuil.text),
+      );
       if (mounted) Navigator.pop(context, true);
     } on AppException catch (e) {
+      if (!mounted) return;
       setState(() => _error = e.message);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _error = e.toString());
     } finally {
-      if (mounted) setState(() => _loading = false);
+      if (mounted) {
+        setState(() => _loading = false);
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     return AlertDialog(
-      title: const Text('Nouveau produit'),
-      content: Column(mainAxisSize: MainAxisSize.min, children: [
-        TextField(controller: _nom, decoration: const InputDecoration(labelText: 'Nom')),
-        TextField(controller: _qty, keyboardType: TextInputType.number,
-            decoration: const InputDecoration(labelText: 'Quantité')),
-        TextField(controller: _price, keyboardType: TextInputType.number,
-            decoration: const InputDecoration(labelText: 'Prix unitaire')),
-        TextField(controller: _seuil, keyboardType: TextInputType.number,
-            decoration: const InputDecoration(labelText: 'Seuil alerte')),
-        if (_error != null) Padding(padding: const EdgeInsets.only(top: 8),
-            child: Text(_error!, style: const TextStyle(color: Colors.red))),
-      ]),
+      title: Text(t.newProduct),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: _nom,
+              decoration: InputDecoration(labelText: t.name),
+            ),
+            TextField(
+              controller: _qty,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(labelText: t.quantity),
+            ),
+            TextField(
+              controller: _price,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(labelText: t.unitPrice),
+            ),
+            TextField(
+              controller: _seuil,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(labelText: t.alertThreshold),
+            ),
+            if (_error != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text(_error!, style: const TextStyle(color: Colors.red)),
+              ),
+          ],
+        ),
+      ),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Annuler')),
-        ElevatedButton(onPressed: _loading ? null : _submit,
-            child: _loading ? const CircularProgressIndicator() : const Text('Enregistrer')),
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(t.cancel),
+        ),
+        ElevatedButton(
+          onPressed: _loading ? null : _submit,
+          child: _loading
+              ? const CircularProgressIndicator()
+              : Text(t.save),
+        ),
       ],
     );
   }

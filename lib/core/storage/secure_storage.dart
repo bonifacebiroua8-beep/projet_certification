@@ -13,6 +13,9 @@ class SecureStorage {
   static Future<String?> getAccessToken() => _storage.read(key: 'access_token');
   static Future<String?> getRefreshToken() => _storage.read(key: 'refresh_token');
 
+  static Future<void> saveLocale(String locale) => _storage.write(key: 'locale', value: locale);
+  static Future<String?> getLocale() => _storage.read(key: 'locale');
+
   static Future<void> clear() async {
     await _storage.delete(key: 'access_token');
     await _storage.delete(key: 'refresh_token');

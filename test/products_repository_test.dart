@@ -7,22 +7,39 @@ import 'package:ubuntutech_frontend/features/products/domain/product_model.dart'
 
 class MockRemote extends Mock implements ProductsRemoteDataSource {}
 class MockLocal extends Mock implements ProductsLocalDataSource {}
+class FakeProduct extends Fake implements ProductModel {}
 
 void main() {
   late MockRemote remote;
   late MockLocal local;
   late ProductsRepository repo;
 
+  setUpAll(() {
+    registerFallbackValue(FakeProduct());
+  });
+
   setUp(() {
     remote = MockRemote();
     local = MockLocal();
-    repo = ProductsRepository(remote: remote, local: local);
+    repo = ProductsRepository(
+      remote: remote,
+      local: local,
+      getUserId: () async => 'test-user-id',
+    );
     when(() => local.saveAll(any())).thenAnswer((_) async {});
   });
 
   test('retourne les produits distants et les met en cache', () async {
-    final fake = [ProductModel(id: '1', userId: 'u', nom: 'Riz', quantite: 10,
-        prixUnitaire: 500, seuilAlerte: 5)];
+    final fake = [
+      ProductModel(
+        id: '1',
+        userId: 'u',
+        nom: 'Riz',
+        quantite: 10,
+        prixUnitaire: 500,
+        seuilAlerte: 5,
+      )
+    ];
     when(() => remote.fetchAll()).thenAnswer((_) async => fake);
 
     final result = await repo.getProducts();
@@ -32,8 +49,16 @@ void main() {
   });
 
   test('repli sur le cache si erreur réseau et cache non vide', () async {
-    final cached = [ProductModel(id: '1', userId: 'u', nom: 'Riz', quantite: 10,
-        prixUnitaire: 500, seuilAlerte: 5)];
+    final cached = [
+      ProductModel(
+        id: '1',
+        userId: 'u',
+        nom: 'Riz',
+        quantite: 10,
+        prixUnitaire: 500,
+        seuilAlerte: 5,
+      )
+    ];
     when(() => remote.fetchAll()).thenThrow(Exception('network error'));
     when(() => local.getAll(any())).thenAnswer((_) async => cached);
 
@@ -42,9 +67,12 @@ void main() {
     expect(result.length, 1);
   });
 
-  test('addProduct propage une AppException si l\'API échoue', () async {
+  test('addProduct propage une exception si l\'API échoue', () async {
     when(() => remote.create(any())).thenThrow(Exception('fail'));
 
-    expect(() => repo.addProduct('Riz', 10, 500, 5), throwsA(isA<Exception>()));
+    expect(
+      () => repo.addProduct('Riz', 10, 500, 5),
+      throwsA(isA<Exception>()),
+    );
   });
 }

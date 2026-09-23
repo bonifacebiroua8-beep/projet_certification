@@ -1,5 +1,5 @@
-import '../../../core/network/dio_client.dart';
-import '../domain/product_model.dart';
+import '../../core/network/dio_client.dart';
+import 'domain/product_model.dart';
 
 class ProductsRemoteDataSource {
   Future<List<ProductModel>> fetchAll() async {

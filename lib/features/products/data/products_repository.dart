@@ -1,6 +1,5 @@
-import '../../../core/network/connectivity_service.dart';
-import '../../../core/storage/secure_storage.dart';
 import '../../../core/error/app_exception.dart';
+import '../../../core/storage/secure_storage.dart';
 import '../domain/product_model.dart';
 import 'products_remote_datasource.dart';
 import 'products_local_datasource.dart';
@@ -8,13 +7,18 @@ import 'products_local_datasource.dart';
 class ProductsRepository {
   final ProductsRemoteDataSource remote;
   final ProductsLocalDataSource local;
+  final Future<String?> Function() _getUserId;
 
-  ProductsRepository({ProductsRemoteDataSource? remote, ProductsLocalDataSource? local})
-      : remote = remote ?? ProductsRemoteDataSource(),
-        local = local ?? ProductsLocalDataSource();
+  ProductsRepository({
+    ProductsRemoteDataSource? remote,
+    ProductsLocalDataSource? local,
+    Future<String?> Function()? getUserId,
+  })  : remote = remote ?? ProductsRemoteDataSource(),
+        local = local ?? ProductsLocalDataSource(),
+        _getUserId = getUserId ?? SecureStorage.getUserId;
 
   Future<List<ProductModel>> getProducts() async {
-    final userId = await SecureStorage.getUserId() ?? '';
+    final userId = await _getUserId() ?? '';
     try {
       final items = await remote.fetchAll();
       await local.saveAll(items);
@@ -27,9 +31,15 @@ class ProductsRepository {
   }
 
   Future<void> addProduct(String nom, double quantite, double prixUnitaire, double seuil) async {
-    final userId = await SecureStorage.getUserId() ?? '';
-    final p = ProductModel(id: '', userId: userId, nom: nom, quantite: quantite,
-        prixUnitaire: prixUnitaire, seuilAlerte: seuil);
+    final userId = await _getUserId() ?? '';
+    final p = ProductModel(
+      id: '',
+      userId: userId,
+      nom: nom,
+      quantite: quantite,
+      prixUnitaire: prixUnitaire,
+      seuilAlerte: seuil,
+    );
     try {
       await remote.create(p);
     } catch (e) {

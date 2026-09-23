@@ -7,22 +7,39 @@ import 'package:ubuntutech_frontend/features/debts/domain/debt_model.dart';
 
 class MockRemote extends Mock implements DebtsRemoteDataSource {}
 class MockLocal extends Mock implements DebtsLocalDataSource {}
+class FakeDebt extends Fake implements DebtModel {}
 
 void main() {
   late MockRemote remote;
   late MockLocal local;
   late DebtsRepository repo;
 
+  setUpAll(() {
+    registerFallbackValue(FakeDebt());
+  });
+
   setUp(() {
     remote = MockRemote();
     local = MockLocal();
-    repo = DebtsRepository(remote: remote, local: local);
+    repo = DebtsRepository(
+      remote: remote,
+      local: local,
+      getUserId: () async => 'test-user-id',
+    );
     when(() => local.saveAll(any())).thenAnswer((_) async {});
   });
 
   test('retourne les dettes distantes et les met en cache', () async {
-    final fake = [DebtModel(id: '1', userId: 'u', client: 'Paul', montant: 5000,
-        montantRembourse: 0, createdAt: '')];
+    final fake = [
+      DebtModel(
+        id: '1',
+        userId: 'u',
+        client: 'Paul',
+        montant: 5000,
+        montantRembourse: 0,
+        createdAt: '',
+      )
+    ];
     when(() => remote.fetchAll()).thenAnswer((_) async => fake);
 
     final result = await repo.getDebts();
@@ -38,11 +55,12 @@ void main() {
     expect(() => repo.getDebts(), throwsA(isA<Exception>()));
   });
 
-  test('addDebt réussit si l\'API répond', () async {
-    when(() => remote.create(any())).thenAnswer((_) async {});
+  test('addDebt propage une exception si l\'API échoue', () async {
+    when(() => remote.create(any())).thenThrow(Exception('fail'));
 
-    await repo.addDebt('Amina', 3000);
-
-    verify(() => remote.create(any())).called(1);
+    expect(
+      () => repo.addDebt('Amina', 3000),
+      throwsA(isA<Exception>()),
+    );
   });
 }

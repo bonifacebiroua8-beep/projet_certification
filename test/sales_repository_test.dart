@@ -7,16 +7,25 @@ import 'package:ubuntutech_frontend/features/sales/domain/sale_model.dart';
 
 class MockRemote extends Mock implements SalesRemoteDataSource {}
 class MockLocal extends Mock implements SalesLocalDataSource {}
+class FakeSale extends Fake implements SaleModel {}
 
 void main() {
   late MockRemote remote;
   late MockLocal local;
   late SalesRepository repo;
 
+  setUpAll(() {
+    registerFallbackValue(FakeSale());
+  });
+
   setUp(() {
     remote = MockRemote();
     local = MockLocal();
-    repo = SalesRepository(remote: remote, local: local);
+    repo = SalesRepository(
+      remote: remote,
+      local: local,
+      getUserId: () async => 'test-user-id',
+    );
     when(() => local.saveAll(any())).thenAnswer((_) async {});
   });
 
@@ -46,16 +55,15 @@ void main() {
     when(() => remote.fetchAll()).thenThrow(Exception('network error'));
     when(() => local.getAll(any())).thenAnswer((_) async => []);
 
-    final result = await repo.getSales();
-
-    expect(result, isEmpty);
+    expect(() => repo.getSales(), throwsA(isA<Exception>()));
   });
 
-  test('addSale retourne false si l\'API échoue', () async {
+  test('addSale propage une exception si l\'API échoue', () async {
     when(() => remote.create(any())).thenThrow(Exception('fail'));
 
-    final ok = await repo.addSale('p1', 2, 500, 'Paul');
-
-    expect(ok, false);
+    expect(
+      () => repo.addSale('p1', 2, 500, 'Paul'),
+      throwsA(isA<Exception>()),
+    );
   });
 }
